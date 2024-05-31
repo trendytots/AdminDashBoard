@@ -20,10 +20,10 @@ const getModelByRole = (role) => {
 
 /*------------------------------------------------- SignUp --------------------------------------------------*/
 const signUp = async (req, res) => {
-    const { email, password, confirmPassword, role } = req.body;
+    const {name, email, password, confirmPassword, role } = req.body;
     console.log(email, password, confirmPassword, role);
 
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
         return res.status(400).json({
             success: false,
             message: 'Please fill all the fields',
@@ -51,6 +51,7 @@ const signUp = async (req, res) => {
 
         const model = getModelByRole(userRole);
         const newUser = new model({
+            name,
             email,
             password: hashedPassword,
             role: userRole,
@@ -312,6 +313,42 @@ const resetPassword = async (req, res) => {
         });
     }
 };
+/*------------------------------------------------- profileUpdate --------------------------------------------------*/
+
+const profileUpdate = async (req, res) => {
+    try {
+        const { email, name, password } = req.body;
+        const updateProfile = { email, name, password };
+
+        // Assuming you have a user ID from the request (e.g., from a session or JWT)
+        const userId = req.user.id; // Adjust this according to how you get the user ID
+
+        // Validate the input (optional but recommended)
+        if (!email || !name || !password) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // Find the user by ID and update the profile
+        let user = await user.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Update the user fields
+        user.email = updateProfile.email;
+        user.name = updateProfile.name;
+        user.password = updateProfile.password;
+
+        // Save the updated user
+        await user.save();
+
+        res.status(200).json({ message: "Profile updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ error: "An error occurred while updating the profile" });
+    }
+};
+
 
 /*------------------------------------------------- SignOut --------------------------------------------------*/
 
@@ -339,6 +376,6 @@ module.exports = {
     signIn,
     signOut,
     forgotPassword,
-    resetPassword,
+    resetPassword
 };
 // fixed
